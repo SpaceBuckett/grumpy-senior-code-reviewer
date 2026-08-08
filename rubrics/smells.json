@@ -1,0 +1,236 @@
+[
+  {
+    "id": "long-method",
+    "name": "Long Method",
+    "family": "bloaters",
+    "description": "A function has grown so large that nobody can hold its whole flow in their head at once.",
+    "cues": [
+      "body runs well past one screen",
+      "distinct phases separated by blank lines",
+      "deep nesting of loops and conditionals"
+    ],
+    "refactorings": ["extract-method", "decompose-conditional", "replace-temp-with-query"],
+    "reference": "https://refactoring.guru/smells/long-method"
+  },
+  {
+    "id": "large-struct",
+    "name": "Large Struct",
+    "family": "bloaters",
+    "description": "A single type accumulates so many fields and methods that it carries several unrelated jobs.",
+    "cues": [
+      "dozens of loosely related fields",
+      "methods touching disjoint field subsets",
+      "vague type names like Manager or Context"
+    ],
+    "refactorings": ["move-method", "extract-interface"],
+    "reference": "https://refactoring.guru/smells/large-class"
+  },
+  {
+    "id": "long-parameter-list",
+    "name": "Long Parameter List",
+    "family": "bloaters",
+    "description": "A function demands so many arguments that call sites become unreadable and easy to get wrong.",
+    "cues": [
+      "four or more parameters",
+      "adjacent same-typed arguments easy to swap",
+      "boolean flags that switch behavior"
+    ],
+    "refactorings": ["introduce-parameter-object", "preserve-whole-object"],
+    "reference": "https://refactoring.guru/smells/long-parameter-list"
+  },
+  {
+    "id": "primitive-obsession",
+    "name": "Primitive Obsession",
+    "family": "bloaters",
+    "description": "Plain strings and numbers stand in for domain concepts that deserve their own types.",
+    "cues": [
+      "stringly-typed ids compared to literals",
+      "unit-less numbers passed around",
+      "same raw value re-validated at every use"
+    ],
+    "refactorings": ["introduce-parameter-object", "replace-magic-number-with-named-constant"],
+    "reference": "https://refactoring.guru/smells/primitive-obsession"
+  },
+  {
+    "id": "data-clumps",
+    "name": "Data Clumps",
+    "family": "bloaters",
+    "description": "The same group of values travels together through many signatures instead of being one value.",
+    "cues": [
+      "identical parameter trios recur across functions",
+      "fields always read or written together",
+      "copy-pasted argument groups at call sites"
+    ],
+    "refactorings": ["introduce-parameter-object", "preserve-whole-object"],
+    "reference": "https://refactoring.guru/smells/data-clumps"
+  },
+  {
+    "id": "switch-statements",
+    "name": "Switch Statements",
+    "family": "oo-abusers",
+    "description": "Type or tag checks are repeated across the codebase where dispatch should be decided once.",
+    "cues": [
+      "switch or if-else chains on a type tag",
+      "same case list duplicated in several places",
+      "new variant requires touching every chain"
+    ],
+    "refactorings": ["replace-conditional-with-polymorphism", "decompose-conditional"],
+    "reference": "https://refactoring.guru/smells/switch-statements"
+  },
+  {
+    "id": "temporary-field",
+    "name": "Temporary Field",
+    "family": "oo-abusers",
+    "description": "A field is only meaningful during certain operations and sits empty the rest of the time.",
+    "cues": [
+      "fields set just before one method call",
+      "nil checks guarding usually-unset fields",
+      "state that belongs in locals or parameters"
+    ],
+    "refactorings": ["introduce-parameter-object"],
+    "reference": "https://refactoring.guru/smells/temporary-field"
+  },
+  {
+    "id": "refused-bequest",
+    "name": "Refused Bequest",
+    "family": "oo-abusers",
+    "description": "A subtype takes on inherited or embedded behavior it does not want and leaves much of it unused or stubbed.",
+    "cues": [
+      "embedded type used for one or two methods",
+      "panicking or no-op interface implementations",
+      "overrides that discard parent behavior"
+    ],
+    "refactorings": ["extract-interface", "move-method"],
+    "reference": "https://refactoring.guru/smells/refused-bequest"
+  },
+  {
+    "id": "divergent-change",
+    "name": "Divergent Change",
+    "family": "change-preventers",
+    "description": "One type keeps changing for several unrelated reasons, revealing that it mixes responsibilities.",
+    "cues": [
+      "unrelated features all edit the same file",
+      "method groups that never interact",
+      "one struct parses, stores, and renders"
+    ],
+    "refactorings": ["extract-method", "move-method"],
+    "reference": "https://refactoring.guru/smells/divergent-change"
+  },
+  {
+    "id": "shotgun-surgery",
+    "name": "Shotgun Surgery",
+    "family": "change-preventers",
+    "description": "A single conceptual change forces small edits scattered across many files.",
+    "cues": [
+      "renaming one concept touches a dozen files",
+      "same rule redefined in several packages",
+      "every feature ships as a ripple of tiny edits"
+    ],
+    "refactorings": ["move-method", "inline-method"],
+    "reference": "https://refactoring.guru/smells/shotgun-surgery"
+  },
+  {
+    "id": "parallel-inheritance-hierarchies",
+    "name": "Parallel Inheritance Hierarchies",
+    "family": "change-preventers",
+    "description": "Adding a type in one hierarchy always forces adding a mirror type in another.",
+    "cues": [
+      "matching name prefixes across two type families",
+      "type pairs created and deleted together",
+      "factories updated in lockstep"
+    ],
+    "refactorings": ["move-method"],
+    "reference": "https://refactoring.guru/smells/parallel-inheritance-hierarchies"
+  },
+  {
+    "id": "duplicate-code",
+    "name": "Duplicate Code",
+    "family": "dispensables",
+    "description": "The same logic lives in more than one place, so every fix must be applied repeatedly.",
+    "cues": [
+      "near-identical blocks differing in one name",
+      "sibling branches with the same statements",
+      "parallel functions drifting apart over time"
+    ],
+    "refactorings": ["extract-method", "consolidate-duplicate-conditional-fragments"],
+    "reference": "https://refactoring.guru/smells/duplicate-code"
+  },
+  {
+    "id": "dead-code",
+    "name": "Dead Code",
+    "family": "dispensables",
+    "description": "Code that can never run or is never referenced stays in the tree and misleads readers.",
+    "cues": [
+      "unreferenced functions, fields, or variables",
+      "branches behind always-false conditions",
+      "commented-out blocks kept for someday"
+    ],
+    "refactorings": [],
+    "reference": "https://refactoring.guru/smells/dead-code"
+  },
+  {
+    "id": "speculative-generality",
+    "name": "Speculative Generality",
+    "family": "dispensables",
+    "description": "Abstraction built for imagined future needs complicates the code without any present payoff.",
+    "cues": [
+      "interface with one implementation and one caller",
+      "unused hooks, parameters, or options",
+      "generics instantiated with a single type"
+    ],
+    "refactorings": ["inline-method"],
+    "reference": "https://refactoring.guru/smells/speculative-generality"
+  },
+  {
+    "id": "feature-envy",
+    "name": "Feature Envy",
+    "family": "couplers",
+    "description": "A method spends most of its time working with another type's data rather than its own.",
+    "cues": [
+      "long runs of accessor calls on one foreign value",
+      "receiver barely used inside the method",
+      "logic about a type living in another package"
+    ],
+    "refactorings": ["move-method", "extract-method"],
+    "reference": "https://refactoring.guru/smells/feature-envy"
+  },
+  {
+    "id": "inappropriate-intimacy",
+    "name": "Inappropriate Intimacy",
+    "family": "couplers",
+    "description": "Two types reach into each other's internals so deeply that neither can change independently.",
+    "cues": [
+      "direct pokes at another type's internals",
+      "bidirectional references between two types",
+      "tests of one type break when the other moves"
+    ],
+    "refactorings": ["move-method", "hide-delegate"],
+    "reference": "https://refactoring.guru/smells/inappropriate-intimacy"
+  },
+  {
+    "id": "message-chains",
+    "name": "Message Chains",
+    "family": "couplers",
+    "description": "A caller navigates a long chain of objects to reach the thing it actually needs.",
+    "cues": [
+      "expressions shaped like a.B().C().D()",
+      "callers knowing a nested graph's full shape",
+      "deep structural change breaks distant callers"
+    ],
+    "refactorings": ["hide-delegate", "extract-method"],
+    "reference": "https://refactoring.guru/smells/message-chains"
+  },
+  {
+    "id": "middle-man",
+    "name": "Middle Man",
+    "family": "couplers",
+    "description": "A type does almost nothing except forward calls to another type.",
+    "cues": [
+      "most methods are one-line delegations",
+      "wrapper adds no validation or translation",
+      "callers could reach the delegate directly"
+    ],
+    "refactorings": ["remove-middle-man", "inline-method"],
+    "reference": "https://refactoring.guru/smells/middle-man"
+  }
+]

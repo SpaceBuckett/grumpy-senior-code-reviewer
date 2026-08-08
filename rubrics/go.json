@@ -1,0 +1,197 @@
+[
+  {
+    "id": "error-handling",
+    "name": "Error Handling",
+    "topic": "errors",
+    "description": "Check every returned error, wrap with %w so the cause survives, and treat errors as ordinary values.",
+    "cues": [
+      "errors assigned to _ or silently dropped",
+      "fmt.Errorf without %w losing the cause",
+      "err logged but execution continues anyway"
+    ],
+    "refactorings": [],
+    "reference": "https://go.dev/wiki/CodeReviewComments#handle-errors"
+  },
+  {
+    "id": "accept-interfaces-return-structs",
+    "name": "Accept Interfaces, Return Structs",
+    "topic": "api-design",
+    "description": "Take the narrowest interface that covers what the function needs and hand back concrete types.",
+    "cues": [
+      "concrete parameter where one method is used",
+      "exported functions returning interface types",
+      "*os.File taken where io.Reader would do"
+    ],
+    "refactorings": [],
+    "reference": "https://go.dev/wiki/CodeReviewComments#interfaces"
+  },
+  {
+    "id": "small-interfaces",
+    "name": "Small Interfaces",
+    "topic": "api-design",
+    "description": "Interfaces stay powerful by staying tiny; a broad interface is hard to satisfy and weakly abstract.",
+    "cues": [
+      "many-method interface with one implementation",
+      "interface declared by the producer, not consumer",
+      "tests forced to stub methods they never call"
+    ],
+    "refactorings": [],
+    "reference": "https://go-proverbs.github.io/"
+  },
+  {
+    "id": "zero-value-usefulness",
+    "name": "Useful Zero Value",
+    "topic": "api-design",
+    "description": "Design types so their zero value works immediately without a constructor call.",
+    "cues": [
+      "type misbehaves unless a New function ran",
+      "required Init methods before first use",
+      "writes to a nil map waiting to happen"
+    ],
+    "refactorings": [],
+    "reference": "https://go.dev/doc/effective_go#data"
+  },
+  {
+    "id": "goroutine-leaks",
+    "name": "Goroutine Leaks",
+    "topic": "concurrency",
+    "description": "Every goroutine needs a known exit path; one that can block forever is a leak.",
+    "cues": [
+      "send on a channel nobody may receive from",
+      "worker loop with no done or cancel signal",
+      "goroutines spawned per request with no owner"
+    ],
+    "refactorings": [],
+    "reference": "https://go.dev/wiki/CodeReviewComments#goroutine-lifetimes"
+  },
+  {
+    "id": "context-propagation",
+    "name": "Context Propagation",
+    "topic": "concurrency",
+    "description": "Pass context.Context as the first parameter through call chains that do I/O; never store it in a struct.",
+    "cues": [
+      "context.Background() deep inside library code",
+      "ctx kept in a struct field",
+      "blocking calls that ignore cancellation"
+    ],
+    "refactorings": [],
+    "reference": "https://go.dev/wiki/CodeReviewComments#contexts"
+  },
+  {
+    "id": "defer-for-cleanup",
+    "name": "Defer for Cleanup",
+    "topic": "resources",
+    "description": "Acquire a resource and defer its release on the next line so no return path can leak it.",
+    "cues": [
+      "Close or Unlock called on some paths only",
+      "release far from the acquisition site",
+      "defer inside a loop piling up until exit"
+    ],
+    "refactorings": [],
+    "reference": "https://go.dev/doc/effective_go#defer"
+  },
+  {
+    "id": "table-driven-tests",
+    "name": "Table-Driven Tests",
+    "topic": "testing",
+    "description": "Express related cases as a table of inputs and expected outputs iterated in one test body.",
+    "cues": [
+      "copy-pasted tests differing only in literals",
+      "sequential assertions repeating one pattern",
+      "unnamed cases making failures hard to place"
+    ],
+    "refactorings": [],
+    "reference": "https://go.dev/wiki/TableDrivenTests"
+  },
+  {
+    "id": "package-naming",
+    "name": "Package Naming",
+    "topic": "naming",
+    "description": "Package names are short, lower-case, and meaningful, and exported names read well with the prefix.",
+    "cues": [
+      "catch-alls named util, common, or helpers",
+      "stuttering names like parser.ParseParser",
+      "underscores or mixed case in package names"
+    ],
+    "refactorings": [],
+    "reference": "https://go.dev/doc/effective_go#package-names"
+  },
+  {
+    "id": "receiver-naming",
+    "name": "Receiver Naming",
+    "topic": "naming",
+    "description": "Use the same short receiver identifier on every method of a type, never self or this.",
+    "cues": [
+      "receiver name varies across a type's methods",
+      "receivers named self, this, or me",
+      "long receiver names shadowed by locals"
+    ],
+    "refactorings": [],
+    "reference": "https://go.dev/wiki/CodeReviewComments#receiver-names"
+  },
+  {
+    "id": "premature-abstraction",
+    "name": "Premature Abstraction",
+    "topic": "simplicity",
+    "description": "Skip layers and interfaces until a second concrete use proves the need; a little copying beats a little dependency.",
+    "cues": [
+      "interface added for one implementation just in case",
+      "wrappers around the stdlib adding nothing",
+      "deep package tree for a small program"
+    ],
+    "refactorings": [],
+    "reference": "https://go-proverbs.github.io/"
+  },
+  {
+    "id": "sync-misuse",
+    "name": "Sync Misuse",
+    "topic": "concurrency",
+    "description": "Prefer sharing memory by communicating; when a mutex is needed, keep the critical section small and its ownership obvious.",
+    "cues": [
+      "mutex copied by value or exported",
+      "lock held across I/O or channel operations",
+      "shared fields with no stated guard"
+    ],
+    "refactorings": [],
+    "reference": "https://go.dev/doc/effective_go#sharing"
+  },
+  {
+    "id": "channel-buffering",
+    "name": "Channel Buffering",
+    "topic": "concurrency",
+    "description": "Pick a channel's buffer size deliberately: unbuffered for synchronization, buffered only with a reasoned capacity.",
+    "cues": [
+      "arbitrary sizes like 100 with no rationale",
+      "buffer papering over a missing consumer",
+      "unbuffered channel causing avoidable deadlock"
+    ],
+    "refactorings": [],
+    "reference": "https://go.dev/doc/effective_go#channels"
+  },
+  {
+    "id": "time-after-leak",
+    "name": "time.After in Loops",
+    "topic": "concurrency",
+    "description": "time.After inside a loop allocates a timer per iteration that lives until it fires; use a Timer or Ticker instead.",
+    "cues": [
+      "time.After in a select inside a for loop",
+      "a timer allocated per message on hot paths",
+      "long-lived timers never stopped"
+    ],
+    "refactorings": [],
+    "reference": "https://pkg.go.dev/time#After"
+  },
+  {
+    "id": "sql-parameterization",
+    "name": "SQL Parameterization",
+    "topic": "security",
+    "description": "Build SQL with placeholder parameters, never by concatenating or formatting user input into the query string.",
+    "cues": [
+      "fmt.Sprintf assembling a query from input",
+      "string concatenation of WHERE clauses",
+      "query text varying per request"
+    ],
+    "refactorings": [],
+    "reference": "https://go.dev/doc/database/querying"
+  }
+]

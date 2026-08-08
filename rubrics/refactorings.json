@@ -1,0 +1,100 @@
+[
+  {
+    "id": "extract-method",
+    "name": "Extract Method",
+    "description": "Move a coherent fragment into a new well-named function and call it from the original site.",
+    "fixes": ["long-method", "duplicate-code", "feature-envy", "divergent-change"],
+    "reference": "https://refactoring.guru/extract-method"
+  },
+  {
+    "id": "inline-method",
+    "name": "Inline Method",
+    "description": "Replace calls to a trivial function with its body and delete it when the indirection adds nothing.",
+    "fixes": ["middle-man", "speculative-generality"],
+    "reference": "https://refactoring.guru/inline-method"
+  },
+  {
+    "id": "extract-variable",
+    "name": "Extract Variable",
+    "description": "Give a complicated expression a named local so its intent reads directly in the code.",
+    "fixes": ["long-method"],
+    "reference": "https://refactoring.guru/extract-variable"
+  },
+  {
+    "id": "replace-temp-with-query",
+    "name": "Replace Temp with Query",
+    "description": "Swap a temporary holding a computed value for a function that computes it on demand.",
+    "fixes": ["long-method"],
+    "reference": "https://refactoring.guru/replace-temp-with-query"
+  },
+  {
+    "id": "introduce-parameter-object",
+    "name": "Introduce Parameter Object",
+    "description": "Bundle values that always travel together into one struct and pass that instead.",
+    "fixes": ["long-parameter-list", "data-clumps", "primitive-obsession", "temporary-field"],
+    "reference": "https://refactoring.guru/introduce-parameter-object"
+  },
+  {
+    "id": "preserve-whole-object",
+    "name": "Preserve Whole Object",
+    "description": "Pass the whole object rather than plucking out several of its fields first.",
+    "fixes": ["long-parameter-list", "data-clumps"],
+    "reference": "https://refactoring.guru/preserve-whole-object"
+  },
+  {
+    "id": "replace-conditional-with-polymorphism",
+    "name": "Replace Conditional with Polymorphism",
+    "description": "Move each branch of a type-tag conditional into that type's own method behind a shared interface.",
+    "fixes": ["switch-statements"],
+    "reference": "https://refactoring.guru/replace-conditional-with-polymorphism"
+  },
+  {
+    "id": "replace-magic-number-with-named-constant",
+    "name": "Replace Magic Number with Named Constant",
+    "description": "Replace a bare literal with a named constant that states what the value means.",
+    "fixes": ["primitive-obsession"],
+    "reference": "https://refactoring.guru/replace-magic-number-with-symbolic-constant"
+  },
+  {
+    "id": "decompose-conditional",
+    "name": "Decompose Conditional",
+    "description": "Extract the condition and each branch of a tangled conditional into named functions.",
+    "fixes": ["long-method", "switch-statements"],
+    "reference": "https://refactoring.guru/decompose-conditional"
+  },
+  {
+    "id": "consolidate-duplicate-conditional-fragments",
+    "name": "Consolidate Duplicate Conditional Fragments",
+    "description": "Hoist code repeated in every branch of a conditional out to before or after it.",
+    "fixes": ["duplicate-code"],
+    "reference": "https://refactoring.guru/consolidate-duplicate-conditional-fragments"
+  },
+  {
+    "id": "extract-interface",
+    "name": "Extract Interface",
+    "description": "Define an interface for just the methods a caller needs so it depends on behavior, not a concrete type.",
+    "fixes": ["large-struct", "refused-bequest"],
+    "reference": "https://refactoring.guru/extract-interface"
+  },
+  {
+    "id": "move-method",
+    "name": "Move Method",
+    "description": "Relocate a method onto the type whose data it mostly works with.",
+    "fixes": ["feature-envy", "inappropriate-intimacy", "shotgun-surgery"],
+    "reference": "https://refactoring.guru/move-method"
+  },
+  {
+    "id": "hide-delegate",
+    "name": "Hide Delegate",
+    "description": "Add a method on the direct dependency so callers stop traversing through it to a further object.",
+    "fixes": ["message-chains", "inappropriate-intimacy"],
+    "reference": "https://refactoring.guru/hide-delegate"
+  },
+  {
+    "id": "remove-middle-man",
+    "name": "Remove Middle Man",
+    "description": "Let callers talk to the real object directly and delete the forwarding layer.",
+    "fixes": ["middle-man"],
+    "reference": "https://refactoring.guru/remove-middle-man"
+  }
+]

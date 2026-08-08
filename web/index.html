@@ -1,0 +1,864 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GrumpySenior</title>
+<style>
+  :root {
+    --bg: #10111c;
+    --panel: rgba(192, 202, 245, 0.04);
+    --panel-solid: #16172a;
+    --border: rgba(192, 202, 245, 0.1);
+    --border-bright: rgba(192, 202, 245, 0.22);
+    --text: #c8d0f5;
+    --muted: #8189ab;
+    --dim: #565f89;
+    --accent-a: #bb9af7;
+    --accent-b: #7aa2f7;
+    --high: #f7768e;
+    --medium: #e0af68;
+    --low: #7dcfff;
+    --good: #9ece6a;
+    --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI Variable", "Segoe UI", Inter, Roboto, sans-serif;
+    --font-mono: "SF Mono", ui-monospace, "Cascadia Code", "JetBrains Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html { color-scheme: dark; }
+  body {
+    margin: 0; min-height: 100vh; background: var(--bg); color: var(--text);
+    font-family: var(--font-sans); -webkit-font-smoothing: antialiased;
+    background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.035) 1px, transparent 0);
+    background-size: 26px 26px;
+    overflow-x: hidden;
+  }
+  .aurora {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden;
+  }
+  .aurora span {
+    position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.16;
+    animation: drift 26s ease-in-out infinite alternate;
+  }
+  .aurora span:nth-child(1) { width: 520px; height: 520px; background: #7aa2f7; top: -180px; left: -120px; }
+  .aurora span:nth-child(2) { width: 460px; height: 460px; background: #2ac3de; top: 30%; right: -160px; animation-delay: -8s; }
+  .aurora span:nth-child(3) { width: 380px; height: 380px; background: #9d7cd8; bottom: -140px; left: 30%; animation-delay: -16s; }
+  @keyframes drift {
+    from { transform: translate3d(0, 0, 0) scale(1); }
+    to   { transform: translate3d(60px, 40px, 0) scale(1.15); }
+  }
+  #net { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+  main { position: relative; z-index: 1; max-width: 880px; margin: 0 auto; padding: 2.2rem 1.2rem 4rem; }
+
+  header { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1.6rem; }
+  .logo {
+    width: 38px; height: 38px; border-radius: 11px; flex: none;
+    background: linear-gradient(135deg, var(--accent-a), var(--accent-b));
+    display: grid; place-items: center;
+    box-shadow: 0 0 24px rgba(122, 162, 247, 0.45);
+  }
+  .logo svg { width: 20px; height: 20px; }
+  .wordmark { font-size: 1.12rem; font-weight: 700; letter-spacing: -0.01em; }
+  .wordmark small { display: block; font-size: 0.68rem; font-weight: 500; color: var(--muted); letter-spacing: 0.02em; font-family: var(--font-mono); margin-top: 0.15rem; }
+  .caret {
+    display: inline-block; width: 0.5em; height: 0.9em; margin-left: 0.3em; vertical-align: text-bottom;
+    background: var(--accent-b); animation: blink 1.1s steps(2, start) infinite;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+  .spacer { flex: 1; }
+  .ghost-btn {
+    background: var(--panel); border: 1px solid var(--border); color: var(--muted);
+    padding: 0.45rem 0.85rem; border-radius: 9px; font-size: 0.82rem; font-family: inherit;
+    cursor: pointer; transition: border-color 0.2s, color 0.2s, transform 0.15s;
+  }
+  .ghost-btn:hover { border-color: var(--border-bright); color: var(--text); transform: translateY(-1px); }
+  .ghost-btn[aria-expanded="true"] { color: var(--text); border-color: var(--border-bright); }
+
+  .glass {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 18px;
+    backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  }
+
+  .keys { max-height: 0; overflow: hidden; transition: max-height 0.35s ease, margin 0.35s ease; margin: 0; border-width: 0; box-shadow: none; }
+  .keys.open { max-height: 560px; margin-bottom: 1rem; border-width: 1px; }
+  .blocks { -webkit-text-security: square; letter-spacing: 0.14em; }
+  .keyprint { font-family: var(--font-mono); color: var(--accent-b); min-height: 0.9em; text-shadow: 0 0 10px rgba(122, 162, 247, 0.5); }
+  .keys-inner { padding: 1.1rem 1.2rem; display: grid; gap: 0.9rem; }
+  @media (min-width: 640px) { .keys-inner { grid-template-columns: 1fr 1fr; } }
+  .field label { display: block; font-size: 0.78rem; font-weight: 600; color: var(--muted); margin-bottom: 0.35rem; letter-spacing: 0.03em; }
+  .field input, .field select, .field textarea {
+    width: 100%; padding: 0.6rem 0.75rem; border-radius: 10px; font-family: var(--font-mono); font-size: 0.82rem;
+    background: rgba(0, 0, 0, 0.35); border: 1px solid var(--border); color: var(--text);
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus {
+    outline: none; border-color: var(--accent-b); box-shadow: 0 0 0 3px rgba(122, 162, 247, 0.18);
+  }
+  .field .hint { font-size: 0.72rem; color: var(--dim); margin-top: 0.35rem; line-height: 1.4; }
+
+  .composer { padding: 1.3rem; }
+  .tabs { display: flex; gap: 0.3rem; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 11px; padding: 0.25rem; width: max-content; margin-bottom: 1.1rem; }
+  .tab {
+    border: none; background: transparent; color: var(--muted); font-family: inherit; font-size: 0.85rem; font-weight: 600;
+    padding: 0.45rem 1rem; border-radius: 8px; cursor: pointer; transition: color 0.2s, background 0.2s;
+  }
+  .tab.active { color: var(--text); background: rgba(255,255,255,0.09); box-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+  .panel { display: none; animation: rise 0.3s ease; }
+  .panel.active { display: block; }
+  @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  #prurl { font-size: 0.92rem; padding: 0.85rem 1rem; }
+  #code { min-height: 240px; resize: vertical; line-height: 1.55; }
+  .code-row { display: flex; gap: 0.8rem; margin-top: 0.8rem; align-items: center; }
+  .code-row .field { width: 160px; }
+
+  .actions { display: flex; align-items: center; gap: 1rem; margin-top: 1.2rem; flex-wrap: wrap; }
+  .switch { display: flex; align-items: center; gap: 0.55rem; cursor: pointer; user-select: none; }
+  .switch input { position: absolute; opacity: 0; }
+  .track {
+    width: 38px; height: 22px; border-radius: 999px; background: rgba(255,255,255,0.12);
+    border: 1px solid var(--border); position: relative; transition: background 0.25s;
+  }
+  .track::after {
+    content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%;
+    background: #cfd6e4; transition: transform 0.25s ease, background 0.25s;
+  }
+  .switch input:checked + .track { background: linear-gradient(135deg, var(--accent-a), var(--accent-b)); }
+  .switch input:checked + .track::after { transform: translateX(16px); background: #fff; }
+  .switch span { font-size: 0.83rem; color: var(--muted); }
+  kbd {
+    font-family: var(--font-mono); font-size: 0.72rem; color: var(--dim);
+    border: 1px solid var(--border); border-radius: 5px; padding: 0.1rem 0.4rem; background: rgba(0,0,0,0.3);
+  }
+  .cta {
+    margin-left: auto; position: relative; overflow: hidden;
+    background: linear-gradient(135deg, var(--accent-a), var(--accent-b)); color: #fff;
+    border: none; border-radius: 11px; padding: 0.7rem 1.7rem; font-family: inherit; font-size: 0.92rem; font-weight: 700;
+    cursor: pointer; transition: transform 0.15s, box-shadow 0.2s; box-shadow: 0 8px 24px rgba(122, 162, 247, 0.35);
+  }
+  .cta:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(122, 162, 247, 0.5); }
+  .cta:active { transform: translateY(0); }
+  .cta:disabled { opacity: 0.55; cursor: wait; transform: none; }
+  .cta::after {
+    content: ""; position: absolute; top: 0; left: -80%; width: 50%; height: 100%;
+    background: linear-gradient(105deg, transparent, rgba(255,255,255,0.35), transparent);
+    transform: skewX(-20deg); transition: left 0.5s ease;
+  }
+  .cta:hover::after { left: 130%; }
+
+  section { margin-top: 1.4rem; }
+  .hidden { display: none !important; }
+
+  .loading { padding: 1.6rem 1.4rem; }
+  .scanner { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.3rem; }
+  .orbit { width: 44px; height: 44px; flex: none; position: relative; }
+  .orbit::before, .orbit::after {
+    content: ""; position: absolute; inset: 0; border-radius: 50%;
+    border: 2px solid transparent; border-top-color: var(--accent-b);
+    animation: spin 1s linear infinite;
+  }
+  .orbit::after { inset: 7px; border-top-color: var(--accent-a); animation-duration: 1.6s; animation-direction: reverse; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #status-line { font-size: 0.92rem; color: var(--muted); transition: opacity 0.3s; }
+  .skeleton { height: 64px; border-radius: 12px; margin-top: 0.7rem; position: relative; overflow: hidden; background: rgba(255,255,255,0.04); }
+  .skeleton::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(100deg, transparent 30%, rgba(255,255,255,0.07) 50%, transparent 70%);
+    animation: shimmer 1.4s infinite;
+  }
+  @keyframes shimmer { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+
+  .hero { display: flex; gap: 1.4rem; padding: 1.4rem; align-items: center; flex-wrap: wrap; }
+  .ring-wrap { position: relative; width: 96px; height: 96px; flex: none; }
+  .ring-wrap svg { transform: rotate(-90deg); }
+  .ring-bg { fill: none; stroke: rgba(255,255,255,0.08); stroke-width: 7; }
+  .ring-fg { fill: none; stroke-width: 7; stroke-linecap: round; transition: stroke-dashoffset 1.1s cubic-bezier(0.22, 1, 0.36, 1), stroke 0.4s; }
+  .grade {
+    position: absolute; inset: 0; display: grid; place-items: center;
+    font-size: 1.7rem; font-weight: 800; letter-spacing: -0.02em;
+  }
+  .tiles { display: flex; gap: 0.7rem; flex: 1; }
+  .tile {
+    flex: 1 1 0; min-width: 0; padding: 0.7rem 0.95rem; border-radius: 12px;
+    background: rgba(0,0,0,0.3); border: 1px solid var(--border); text-align: center;
+  }
+
+  [data-tip] { position: relative; cursor: help; }
+  [data-tip]::after {
+    content: attr(data-tip);
+    position: absolute; bottom: calc(100% + 10px); left: 50%;
+    transform: translateX(-50%) translateY(4px);
+    width: max-content; max-width: 250px; padding: 0.55rem 0.75rem; border-radius: 9px;
+    background: #1b1d30; border: 1px solid var(--border-bright); color: var(--text);
+    font-family: var(--font-sans); font-size: 0.74rem; font-weight: 500; line-height: 1.5;
+    letter-spacing: normal; text-transform: none; text-align: left; white-space: normal;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
+    opacity: 0; pointer-events: none; transition: opacity 0.2s ease, transform 0.2s ease; z-index: 10;
+  }
+  [data-tip]::before {
+    content: ""; position: absolute; bottom: calc(100% + 4px); left: 50%;
+    transform: translateX(-50%); border: 6px solid transparent; border-top-color: #1b1d30;
+    opacity: 0; transition: opacity 0.2s ease; z-index: 10;
+  }
+  [data-tip]:hover::after, [data-tip]:focus-visible::after {
+    opacity: 1; transform: translateX(-50%) translateY(0);
+  }
+  [data-tip]:hover::before, [data-tip]:focus-visible::before { opacity: 1; }
+  .tile b { display: block; font-size: 1.45rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .tile span { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.08em; color: var(--muted); text-transform: uppercase; }
+  .tile.t-high b { color: var(--high); } .tile.t-medium b { color: var(--medium); } .tile.t-low b { color: var(--low); }
+  .chips { width: 100%; display: flex; gap: 0.45rem; flex-wrap: wrap; }
+  .chip {
+    font-family: var(--font-mono); font-size: 0.72rem; color: var(--muted);
+    border: 1px solid var(--border); border-radius: 999px; padding: 0.25rem 0.7rem; background: rgba(0,0,0,0.25);
+  }
+  .chip .plus { color: var(--good); } .chip .minus { color: var(--high); }
+
+  .note { padding: 0.95rem 1.2rem; margin-top: 0.9rem; border-radius: 14px; font-size: 0.9rem; line-height: 1.55; }
+  .note.positive { background: rgba(52, 211, 153, 0.07); border: 1px solid rgba(52, 211, 153, 0.25); }
+  .note.summary { background: var(--panel); border: 1px solid var(--border); color: var(--muted); }
+  .note.error { background: rgba(251, 77, 92, 0.07); border: 1px solid rgba(251, 77, 92, 0.3); }
+  .note.bigpr { background: rgba(245, 166, 35, 0.07); border: 1px solid rgba(245, 166, 35, 0.3); }
+  .note b { color: var(--text); }
+
+  .clean {
+    text-align: center; padding: 2.2rem 1.4rem; margin-top: 0.9rem; border-radius: 16px;
+    background: rgba(52, 211, 153, 0.06); border: 1px solid rgba(52, 211, 153, 0.25);
+    animation: glowPulse 2.4s ease-in-out infinite;
+  }
+  @keyframes glowPulse {
+    0%, 100% { box-shadow: 0 0 0 rgba(52, 211, 153, 0); }
+    50% { box-shadow: 0 0 34px rgba(52, 211, 153, 0.18); }
+  }
+  .clean .big { font-size: 2rem; }
+  .clean h2 { margin: 0.4rem 0 0.2rem; font-size: 1.2rem; }
+  .clean p { margin: 0; color: var(--muted); font-size: 0.88rem; }
+
+  .finding {
+    margin-top: 0.9rem; border-radius: 14px; padding: 1.1rem 1.2rem;
+    background: var(--panel); border: 1px solid var(--border); border-left: 3px solid var(--dim);
+    opacity: 0; animation: cardIn 0.45s ease forwards;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+  .finding:hover { transform: translateY(-2px); border-color: var(--border-bright); }
+  @keyframes cardIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+  .finding.high { border-left-color: var(--high); box-shadow: -6px 0 22px -12px var(--high); }
+  .finding.medium { border-left-color: var(--medium); box-shadow: -6px 0 22px -12px var(--medium); }
+  .finding.low { border-left-color: var(--low); box-shadow: -6px 0 22px -12px var(--low); }
+  .f-head { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+  .badge {
+    font-size: 0.66rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 0.22rem 0.6rem; border-radius: 999px; color: #05070c;
+  }
+  .badge.high { background: var(--high); color: #fff; } .badge.medium { background: var(--medium); } .badge.low { background: var(--low); }
+  .loc { font-family: var(--font-mono); font-size: 0.78rem; color: var(--muted); }
+  .cat { font-size: 0.74rem; color: var(--dim); }
+  .f-issue { margin: 0.6rem 0 0.2rem; font-size: 0.92rem; line-height: 1.55; }
+  .f-fix { margin: 0.3rem 0 0; font-size: 0.85rem; color: var(--muted); line-height: 1.5; }
+  .f-fix b { color: var(--good); font-weight: 600; }
+  .pills { display: flex; gap: 0.45rem; flex-wrap: wrap; margin-top: 0.65rem; }
+  .pill {
+    font-size: 0.72rem; font-weight: 600; padding: 0.24rem 0.65rem; border-radius: 999px;
+    background: rgba(187, 154, 247, 0.12); border: 1px solid rgba(187, 154, 247, 0.32); color: #bb9af7;
+  }
+  .pill.alt { background: rgba(125, 207, 255, 0.1); border-color: rgba(125, 207, 255, 0.3); color: #7dcfff; }
+  .ref { display: inline-block; margin-top: 0.55rem; font-size: 0.76rem; color: var(--accent-b); text-decoration: none; }
+  .ref:hover { text-decoration: underline; }
+  .rewrite { margin-top: 0.8rem; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .rw-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0.4rem 0.75rem; background: rgba(255,255,255,0.04); font-size: 0.72rem; color: var(--muted);
+  }
+  .copy { background: none; border: 1px solid var(--border); color: var(--muted); border-radius: 6px; padding: 0.15rem 0.6rem; font-size: 0.7rem; font-family: inherit; cursor: pointer; transition: color 0.2s, border-color 0.2s; }
+  .copy:hover { color: var(--text); border-color: var(--border-bright); }
+  .copy.ok { color: var(--good); border-color: rgba(52, 211, 153, 0.4); }
+  .rewrite pre { margin: 0; padding: 0.8rem 0.9rem; overflow-x: auto; font-family: var(--font-mono); font-size: 0.78rem; line-height: 1.55; background: rgba(0,0,0,0.35); }
+
+  .snippet { margin-top: 0.7rem; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .sn-bar {
+    display: flex; align-items: center; justify-content: space-between; gap: 0.6rem;
+    padding: 0.4rem 0.75rem; background: rgba(255, 255, 255, 0.04);
+    font-family: var(--font-mono); font-size: 0.72rem; color: var(--muted);
+  }
+  .sn-tag { color: var(--dim); font-family: var(--font-sans); font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; }
+  .sn-lines { background: rgba(0, 0, 0, 0.38); overflow-x: auto; padding: 0.45rem 0; font-family: var(--font-mono); font-size: 0.77rem; line-height: 1.65; }
+  .sn-row { display: flex; white-space: pre; padding: 0 0.85rem; }
+  .sn-num { width: 2.6em; flex: none; text-align: right; margin-right: 0.9em; color: var(--dim); user-select: none; }
+  .sn-row.hl { background: rgba(122, 162, 247, 0.13); box-shadow: inset 2px 0 0 var(--accent-b); }
+  .sn-row.hl .sn-num { color: var(--accent-b); }
+  .sn-row.add { background: rgba(158, 206, 106, 0.07); color: #c9e5ab; }
+  .sn-row.del { background: rgba(247, 118, 142, 0.07); color: #f2a9b8; }
+  .sn-row.add.hl, .sn-row.del.hl { box-shadow: inset 2px 0 0 var(--accent-b); }
+
+  .usage { margin-top: 1.1rem; padding: 0.85rem 1.2rem; display: flex; align-items: center; gap: 0.9rem; flex-wrap: wrap; }
+  .usage .zap { font-size: 1rem; }
+  .usage .label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--dim); }
+  .usage .nums { font-family: var(--font-mono); font-size: 0.8rem; color: var(--muted); }
+  .usage .nums b { color: var(--text); font-weight: 600; }
+  .meter { flex: 1; min-width: 120px; height: 6px; border-radius: 999px; background: rgba(255,255,255,0.07); overflow: hidden; }
+  .meter i { display: block; height: 100%; width: 0; border-radius: 999px; background: linear-gradient(90deg, var(--accent-a), var(--accent-b)); transition: width 1s cubic-bezier(0.22, 1, 0.36, 1); }
+
+  footer { margin-top: 2.6rem; text-align: center; font-size: 0.72rem; color: var(--dim); }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.001s !important; animation-iteration-count: 1 !important; transition-duration: 0.001s !important; }
+    .finding { opacity: 1; }
+  }
+</style>
+</head>
+<body>
+<div class="aurora" aria-hidden="true"><span></span><span></span><span></span></div>
+<canvas id="net" aria-hidden="true"></canvas>
+<main>
+  <header>
+    <div class="logo" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m8 7-5 5 5 5"/>
+        <path d="m16 7 5 5-5 5"/>
+        <path d="M13.6 4.5 10.4 19.5"/>
+      </svg>
+    </div>
+    <div class="wordmark">GrumpySenior<small>$ senior-level review, before human review<span class="caret"></span></small></div>
+    <div class="spacer"></div>
+    <button class="ghost-btn" id="keys-toggle" aria-expanded="false">⌘ Keys</button>
+  </header>
+
+  <div class="glass keys" id="keys">
+    <div class="keys-inner">
+      <div class="field">
+        <label for="apikey">Anthropic API key</label>
+        <input type="password" id="apikey" placeholder="sk-ant-…" autocomplete="off" spellcheck="false">
+        <p class="hint">Sent per request as X-API-Key, used only to run your reviews. Lives in this tab's memory and is never stored or logged.</p>
+        <p class="hint keyprint" id="kp-apikey"></p>
+      </div>
+      <div class="field">
+        <label for="geminikey">Gemini API key <span style="font-weight:400">(alternative)</span></label>
+        <input type="password" id="geminikey" placeholder="AIza…" autocomplete="off" spellcheck="false">
+        <p class="hint">Sent per request as X-Gemini-Key. If both keys are set, Claude runs the review. Never stored.</p>
+        <p class="hint keyprint" id="kp-geminikey"></p>
+      </div>
+      <div class="field">
+        <label for="ghtoken">GitHub token <span style="font-weight:400">(optional)</span></label>
+        <input type="password" id="ghtoken" placeholder="ghp_… (only needed for private repos)" autocomplete="off" spellcheck="false">
+        <p class="hint">Sent per request as X-GitHub-Token to fetch private PR diffs and raise GitHub's rate limit. Never stored.</p>
+        <p class="hint keyprint" id="kp-ghtoken"></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="glass composer">
+    <div class="tabs" role="tablist">
+      <button class="tab active" id="tab-pr" data-panel="panel-pr" role="tab">GitHub PR</button>
+      <button class="tab" id="tab-code" data-panel="panel-code" role="tab">Paste code</button>
+    </div>
+
+    <div class="panel active" id="panel-pr">
+      <div class="field">
+        <input type="url" id="prurl" placeholder="https://github.com/owner/repo/pull/123" spellcheck="false">
+        <p class="hint">Public repos work with no setup. Private repos need a GitHub token: add it under Keys. Big PRs are flagged; the diff limit is 800KB.</p>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-code">
+      <div class="field">
+        <textarea id="code" placeholder="Paste code to review…" spellcheck="false"></textarea>
+      </div>
+      <div class="code-row">
+        <div class="field">
+          <label for="language">Language</label>
+          <select id="language">
+            <option value="go">go</option>
+            <option value="generic">generic</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <label class="switch">
+        <input type="checkbox" id="rewrite">
+        <span class="track" aria-hidden="true"></span>
+        <span>Suggest rewrites</span>
+      </label>
+      <kbd>⌘⏎</kbd>
+      <button class="cta" id="review">Review</button>
+    </div>
+  </div>
+
+  <section class="glass loading hidden" id="loading">
+    <div class="scanner">
+      <div class="orbit" aria-hidden="true"></div>
+      <div id="status-line">Warming up the reviewer…</div>
+    </div>
+    <div class="skeleton"></div>
+    <div class="skeleton"></div>
+    <div class="skeleton"></div>
+  </section>
+
+  <section id="error-box" class="note error hidden"></section>
+  <section id="bigpr-box" class="note bigpr hidden"></section>
+
+  <section id="results" class="hidden">
+    <div class="glass hero">
+      <div class="ring-wrap" id="ring-wrap" tabindex="0">
+        <svg width="96" height="96" viewBox="0 0 96 96">
+          <circle class="ring-bg" cx="48" cy="48" r="40"></circle>
+          <circle class="ring-fg" id="ring" cx="48" cy="48" r="40"></circle>
+        </svg>
+        <div class="grade" id="grade">–</div>
+      </div>
+      <div class="tiles">
+        <div class="tile t-high" tabindex="0" data-tip="Blocking issues: bugs, data races, resource leaks, and security flaws. These fail CI at --fail-on=high and should be fixed before merge."><b id="n-high">0</b><span>high</span></div>
+        <div class="tile t-medium" tabindex="0" data-tip="Design and maintainability debt that slows the team down over time. Worth fixing before human review."><b id="n-medium">0</b><span>medium</span></div>
+        <div class="tile t-low" tabindex="0" data-tip="Clarity and readability polish. Nice to fix, never blocking."><b id="n-low">0</b><span>low</span></div>
+      </div>
+      <div class="chips" id="chips"></div>
+    </div>
+    <div class="note positive" id="positive"></div>
+    <div class="note summary" id="summary"></div>
+    <div id="clean" class="clean hidden">
+      <div class="big">🛡️</div>
+      <h2>No findings. Ship it.</h2>
+      <p>This code is ready for human review.</p>
+    </div>
+    <div id="findings"></div>
+    <div class="glass usage" id="usage" tabindex="0" data-tip="Tokens billed by the provider for this review: input is your code plus the rubric prompt, output is the model's findings. The bar shows roughly how much of a 200k-token context the run used.">
+      <span class="zap">⚡</span>
+      <span class="label">Model usage</span>
+      <span class="nums"><b id="u-in">0</b> tokens in · <b id="u-out">0</b> out · <b id="u-req">0</b> requests</span>
+      <div class="meter"><i id="meter-fill"></i></div>
+    </div>
+  </section>
+
+  <footer>Runs locally · Go stdlib only · your keys never leave this request</footer>
+</main>
+
+<script>
+  const el = (id) => document.getElementById(id);
+
+  function node(tag, className, text) {
+    const n = document.createElement(tag);
+    if (className) n.className = className;
+    if (text !== undefined) n.textContent = text;
+    return n;
+  }
+
+  el("keys-toggle").addEventListener("click", () => {
+    const drawer = el("keys");
+    const open = drawer.classList.toggle("open");
+    el("keys-toggle").setAttribute("aria-expanded", String(open));
+  });
+
+  document.querySelectorAll(".tab").forEach((tab) => {
+    tab.addEventListener("click", () => {
+      document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+      document.querySelectorAll(".panel").forEach((p) => p.classList.remove("active"));
+      tab.classList.add("active");
+      el(tab.dataset.panel).classList.add("active");
+    });
+  });
+
+  const statusLines = [
+    "Fetching the diff…",
+    "Loading the rubric catalogs…",
+    "Reading your code like a grumpy senior…",
+    "Hunting for smells across five families…",
+    "Weighing severities…",
+    "Drafting concrete fixes…",
+    "Double-checking the positives too…",
+  ];
+  let statusTimer = null;
+  function startStatus() {
+    let i = 0;
+    const line = el("status-line");
+    line.textContent = statusLines[0];
+    statusTimer = setInterval(() => {
+      i = (i + 1) % statusLines.length;
+      line.style.opacity = 0;
+      setTimeout(() => { line.textContent = statusLines[i]; line.style.opacity = 1; }, 250);
+    }, 2400);
+  }
+  function stopStatus() { clearInterval(statusTimer); }
+
+  function countUp(id, target, ms) {
+    const elem = el(id);
+    const start = performance.now();
+    const fmt = (n) => Math.round(n).toLocaleString();
+    function tick(now) {
+      const t = Math.min((now - start) / ms, 1);
+      const eased = 1 - Math.pow(1 - t, 3);
+      elem.textContent = fmt(target * eased);
+      if (t < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+
+  const RING_LEN = 2 * Math.PI * 40;
+  const GRADE_MEANINGS = {
+    "A+": "Pristine: no meaningful findings. Ready for human review.",
+    "A": "Strong: minor polish only, safe to ship after a glance.",
+    "B": "Solid but carrying debt: a few design or maintainability issues worth fixing.",
+    "C": "Needs work: significant issues to fix before requesting human review.",
+    "D": "At risk: serious problems, likely bugs or security flaws. Do not merge yet.",
+  };
+  function setGrade(high, medium, low) {
+    const score = Math.max(0, 100 - high * 25 - medium * 10 - low * 3);
+    let letter = "D", color = "var(--high)";
+    if (score >= 95) { letter = "A+"; color = "var(--good)"; }
+    else if (score >= 85) { letter = "A"; color = "var(--good)"; }
+    else if (score >= 70) { letter = "B"; color = "var(--low)"; }
+    else if (score >= 55) { letter = "C"; color = "var(--medium)"; }
+    el("ring-wrap").setAttribute("data-tip",
+      "Grade " + letter + " (score " + score + "/100). " + GRADE_MEANINGS[letter] +
+      " Scoring: start at 100, minus 25 per high, 10 per medium, 3 per low.");
+    const ring = el("ring");
+    ring.style.strokeDasharray = RING_LEN;
+    ring.style.strokeDashoffset = RING_LEN;
+    ring.style.stroke = color;
+    el("grade").textContent = letter;
+    el("grade").style.color = color;
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        ring.style.strokeDashoffset = RING_LEN * (1 - score / 100);
+      });
+    });
+  }
+
+  function chip(html) {
+    const c = node("span", "chip");
+    c.append(...html);
+    return c;
+  }
+
+  function renderChips(meta) {
+    const chips = el("chips");
+    chips.replaceChildren();
+    if (!meta) return;
+    if (meta.source === "pr") {
+      chips.appendChild(chip([document.createTextNode(meta.files + " file" + (meta.files === 1 ? "" : "s") + " changed")]));
+      const delta = node("span", "chip");
+      const plus = node("span", "plus", "+" + meta.additions);
+      const minus = node("span", "minus", "−" + meta.deletions);
+      delta.append(plus, document.createTextNode(" / "), minus);
+      chips.appendChild(delta);
+      chips.appendChild(chip([document.createTextNode(Math.max(1, Math.round(meta.diff_bytes / 1024)) + "KB diff")]));
+    }
+    chips.appendChild(chip([document.createTextNode("rubric: " + meta.language)]));
+    if (meta.provider) chips.appendChild(chip([document.createTextNode(meta.provider + " · " + meta.model)]));
+  }
+
+  function renderUsage(usage) {
+    if (!usage) return;
+    countUp("u-in", usage.input_tokens, 900);
+    countUp("u-out", usage.output_tokens, 900);
+    countUp("u-req", usage.requests, 500);
+    const total = usage.input_tokens + usage.output_tokens;
+    const pct = total ? Math.max(4, Math.min(100, Math.round((total / 200000) * 100))) : 0;
+    requestAnimationFrame(() => { el("meter-fill").style.width = pct + "%"; });
+  }
+
+  function renderSnippet(s) {
+    const wrap = node("div", "snippet");
+    const bar = node("div", "sn-bar");
+    const hl = s.diff ? 0 : (s.start_line || 1) + s.highlight_index;
+    bar.appendChild(node("span", null, s.file + (hl ? ":" + hl : "")));
+    bar.appendChild(node("span", "sn-tag", s.diff ? "changed code" : "code under review"));
+    wrap.appendChild(bar);
+    const box = node("div", "sn-lines");
+    (s.lines || []).forEach((text, i) => {
+      const row = node("div", "sn-row");
+      if (i === s.highlight_index) row.classList.add("hl");
+      if (s.diff) {
+        if (text.startsWith("+")) row.classList.add("add");
+        else if (text.startsWith("-")) row.classList.add("del");
+      } else {
+        row.appendChild(node("span", "sn-num", String((s.start_line || 1) + i)));
+      }
+      row.appendChild(node("span", null, text || " "));
+      box.appendChild(row);
+    });
+    wrap.appendChild(box);
+    return wrap;
+  }
+
+  function renderFinding(f, index) {
+    const sev = ["high", "medium", "low"].includes(f.severity) ? f.severity : "low";
+    const card = node("article", "finding " + sev);
+    card.style.animationDelay = (index * 90) + "ms";
+
+    const head = node("div", "f-head");
+    head.appendChild(node("span", "badge " + sev, sev));
+    head.appendChild(node("span", "loc", f.file + (f.line ? ":" + f.line : "")));
+    if (f.category) head.appendChild(node("span", "cat", f.category));
+    card.appendChild(head);
+
+    if (f.snippet && f.snippet.lines && f.snippet.lines.length) {
+      card.appendChild(renderSnippet(f.snippet));
+    }
+    card.appendChild(node("p", "f-issue", f.issue));
+    const fix = node("p", "f-fix");
+    fix.appendChild(node("b", null, "Fix: "));
+    fix.appendChild(document.createTextNode(f.suggestion));
+    card.appendChild(fix);
+
+    if (f.smell || f.refactoring) {
+      const pills = node("div", "pills");
+      if (f.smell) pills.appendChild(node("span", "pill", f.smell));
+      if (f.refactoring) pills.appendChild(node("span", "pill alt", f.refactoring));
+      card.appendChild(pills);
+    }
+    if (f.reference) {
+      const a = node("a", "ref", f.reference.replace(/^https?:\/\//, ""));
+      a.href = f.reference;
+      a.target = "_blank";
+      a.rel = "noopener";
+      card.appendChild(a);
+    }
+    if (f.rewrite) {
+      const box = node("div", "rewrite");
+      const bar = node("div", "rw-bar");
+      bar.appendChild(node("span", null, "suggested rewrite"));
+      const copy = node("button", "copy", "Copy");
+      copy.addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(f.rewrite);
+          copy.textContent = "Copied ✓";
+          copy.classList.add("ok");
+          setTimeout(() => { copy.textContent = "Copy"; copy.classList.remove("ok"); }, 1600);
+        } catch {
+          copy.textContent = "Select & copy";
+        }
+      });
+      bar.appendChild(copy);
+      box.appendChild(bar);
+      const pre = node("pre");
+      pre.appendChild(node("code", null, f.rewrite));
+      box.appendChild(pre);
+      card.appendChild(box);
+    }
+    return card;
+  }
+
+  function renderResults(data) {
+    const findings = data.findings || [];
+    const count = (sev) => findings.filter((f) => f.severity === sev).length;
+    const high = count("high"), medium = count("medium"), low = findings.length - high - medium;
+
+    setGrade(high, medium, low);
+    countUp("n-high", high, 700);
+    countUp("n-medium", medium, 700);
+    countUp("n-low", low, 700);
+    renderChips(data.meta);
+
+    el("positive").textContent = "✨ " + data.positive;
+    el("summary").textContent = data.summary;
+    el("clean").classList.toggle("hidden", findings.length !== 0);
+
+    const list = el("findings");
+    list.replaceChildren();
+    findings.forEach((f, i) => list.appendChild(renderFinding(f, i)));
+
+    renderUsage(data.meta && data.meta.usage);
+    el("results").classList.remove("hidden");
+  }
+
+  function hideAll() {
+    ["loading", "error-box", "bigpr-box", "results"].forEach((id) => el(id).classList.add("hidden"));
+  }
+
+  async function runReview() {
+    const onPRTab = el("panel-pr").classList.contains("active");
+    const payload = { rewrite: el("rewrite").checked };
+    if (onPRTab) {
+      payload.pr_url = el("prurl").value.trim();
+      if (!payload.pr_url) return showError("Paste a GitHub pull request URL first.");
+    } else {
+      payload.code = el("code").value;
+      payload.language = el("language").value;
+      if (!payload.code.trim()) return showError("Paste some code first.");
+    }
+
+    const headers = { "Content-Type": "application/json" };
+    const apiKey = el("apikey").value.trim();
+    if (apiKey) headers["X-API-Key"] = apiKey;
+    const geminiKey = el("geminikey").value.trim();
+    if (geminiKey) headers["X-Gemini-Key"] = geminiKey;
+    const ghToken = el("ghtoken").value.trim();
+    if (ghToken) headers["X-GitHub-Token"] = ghToken;
+
+    const button = el("review");
+    button.disabled = true;
+    hideAll();
+    el("loading").classList.remove("hidden");
+    startStatus();
+    try {
+      const resp = await fetch("/review", { method: "POST", headers, body: JSON.stringify(payload) });
+      const data = await resp.json();
+      stopStatus();
+      el("loading").classList.add("hidden");
+      if (resp.status === 422 && data.big_pr) return showBigPR(data);
+      if (resp.status === 401) { el("keys").classList.add("open"); throw new Error(data.error); }
+      if (!resp.ok) throw new Error(data.error || ("request failed: " + resp.status));
+      renderResults(data);
+    } catch (err) {
+      stopStatus();
+      el("loading").classList.add("hidden");
+      showError(err.message);
+    } finally {
+      button.disabled = false;
+    }
+  }
+
+  function showError(message) {
+    hideAll();
+    const box = el("error-box");
+    box.textContent = message;
+    box.classList.remove("hidden");
+  }
+
+  function showBigPR(data) {
+    hideAll();
+    const box = el("bigpr-box");
+    box.replaceChildren();
+    box.appendChild(node("b", null, "🐘 Big PR detected. "));
+    box.appendChild(document.createTextNode(
+      "This diff is over the " + Math.round(data.limit_bytes / 1024) +
+      "KB review limit, so a single pass would produce a shallow review. " +
+      "Split the PR, or paste its most important files into the code tab for a focused pass."
+    ));
+    box.classList.remove("hidden");
+  }
+
+  el("review").addEventListener("click", runReview);
+  document.addEventListener("keydown", (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === "Enter") runReview();
+  });
+
+  (function nerdyKeyMask() {
+    const fields = ["apikey", "geminikey", "ghtoken"];
+    if (window.CSS && CSS.supports("-webkit-text-security", "square")) {
+      fields.forEach((id) => {
+        const input = el(id);
+        input.type = "text";
+        input.classList.add("blocks");
+      });
+    }
+    async function keyprint(value) {
+      try {
+        const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+        const bytes = Array.from(new Uint8Array(digest).slice(0, 4));
+        return "0x" + bytes.map((b) => b.toString(16).padStart(2, "0")).join("");
+      } catch {
+        let h = 2166136261;
+        for (const ch of value) h = ((h ^ ch.codePointAt(0)) * 16777619) >>> 0;
+        return "0x" + h.toString(16).padStart(8, "0");
+      }
+    }
+    fields.forEach((id) => {
+      const input = el(id);
+      const out = el("kp-" + id);
+      input.addEventListener("input", async () => {
+        const value = input.value.trim();
+        if (!value) { out.textContent = ""; return; }
+        out.textContent = "▸ keyprint " + (await keyprint(value)) + " · locked in";
+      });
+    });
+  })();
+
+  (function constellation() {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const canvas = el("net");
+    const ctx = canvas.getContext("2d");
+    const COLORS = ["122, 162, 247", "187, 154, 247", "125, 207, 255"];
+    const LINK = 140;
+    const MOUSE_LINK = 200;
+    const mouse = { x: -9999, y: -9999 };
+    let width = 0, height = 0, nodes = [];
+
+    function resize() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const target = Math.min(90, Math.round((width * height) / 16000));
+      while (nodes.length < target) nodes.push(makeNode());
+      nodes.length = target;
+    }
+
+    function makeNode() {
+      return {
+        x: Math.random() * width,
+        y: Math.random() * height,
+        vx: (Math.random() - 0.5) * 0.35,
+        vy: (Math.random() - 0.5) * 0.35,
+        r: 1 + Math.random() * 1.4,
+        phase: Math.random() * Math.PI * 2,
+        color: COLORS[(Math.random() * COLORS.length) | 0],
+      };
+    }
+
+    window.addEventListener("resize", resize);
+    window.addEventListener("pointermove", (e) => { mouse.x = e.clientX; mouse.y = e.clientY; });
+    window.addEventListener("pointerleave", () => { mouse.x = -9999; mouse.y = -9999; });
+    resize();
+
+    function frame(now) {
+      ctx.clearRect(0, 0, width, height);
+      const t = now / 1000;
+
+      for (const n of nodes) {
+        n.x += n.vx;
+        n.y += n.vy;
+        if (n.x < -20) n.x = width + 20; else if (n.x > width + 20) n.x = -20;
+        if (n.y < -20) n.y = height + 20; else if (n.y > height + 20) n.y = -20;
+
+        const dxm = n.x - mouse.x, dym = n.y - mouse.y;
+        const dm = Math.hypot(dxm, dym);
+        if (dm < 70 && dm > 0.001) {
+          n.x += (dxm / dm) * 0.6;
+          n.y += (dym / dm) * 0.6;
+        }
+      }
+
+      ctx.lineWidth = 1;
+      for (let i = 0; i < nodes.length; i++) {
+        const a = nodes[i];
+        for (let j = i + 1; j < nodes.length; j++) {
+          const b = nodes[j];
+          const dx = a.x - b.x, dy = a.y - b.y;
+          const d2 = dx * dx + dy * dy;
+          if (d2 > LINK * LINK) continue;
+          const alpha = (1 - Math.sqrt(d2) / LINK) * 0.13;
+          ctx.strokeStyle = "rgba(" + a.color + ", " + alpha.toFixed(3) + ")";
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.lineTo(b.x, b.y);
+          ctx.stroke();
+        }
+
+        const dxm = a.x - mouse.x, dym = a.y - mouse.y;
+        const dm2 = dxm * dxm + dym * dym;
+        if (dm2 < MOUSE_LINK * MOUSE_LINK) {
+          const alpha = (1 - Math.sqrt(dm2) / MOUSE_LINK) * 0.35;
+          ctx.strokeStyle = "rgba(187, 154, 247, " + alpha.toFixed(3) + ")";
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.lineTo(mouse.x, mouse.y);
+          ctx.stroke();
+        }
+
+        const twinkle = 0.35 + 0.3 * Math.sin(t * 1.6 + a.phase);
+        ctx.fillStyle = "rgba(" + a.color + ", " + twinkle.toFixed(3) + ")";
+        ctx.beginPath();
+        ctx.arc(a.x, a.y, a.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  })();
+</script>
+</body>
+</html>
