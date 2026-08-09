@@ -26,6 +26,7 @@ const (
 	rateLimitPerMinute = 10
 	shutdownGrace      = 5 * time.Second
 	defaultGitHubAPI   = "https://api.github.com"
+	defaultServeAddr   = "127.0.0.1:8787"
 )
 
 type reviewRequest struct {
@@ -82,7 +83,7 @@ func newServer(anthropicKey, geminiKey, model, geminiModel string, timeout time.
 
 func runServe(args []string) error {
 	fs := flag.NewFlagSet("serve", flag.ContinueOnError)
-	addr := fs.String("addr", "127.0.0.1:8787", "address to listen on")
+	addr := fs.String("addr", defaultServeAddr, "address to listen on; the PORT environment variable overrides the default")
 	model := fs.String("model", "claude-sonnet-4-6", "Claude model to use")
 	geminiModel := fs.String("gemini-model", "gemini-2.5-flash", "Gemini model to use")
 	timeout := fs.Duration("timeout", 120*time.Second, "per-review deadline")
@@ -104,8 +105,9 @@ func runServe(args []string) error {
 	s.trustProxy = *trustProxy
 	go s.limiter.cleanupLoop(ctx)
 
-	httpServer := &http.Server{Addr: *addr, Handler: s.routes()}
-	log.Printf("grumpysenior serving on %s", serveURL(*addr))
+	listenAddr := resolveAddr(*addr, os.Getenv("PORT"))
+	httpServer := &http.Server{Addr: listenAddr, Handler: s.routes()}
+	log.Printf("grumpysenior serving on %s", serveURL(listenAddr))
 
 	errCh := make(chan error, 1)
 	go func() { errCh <- httpServer.ListenAndServe() }()
@@ -122,6 +124,13 @@ func runServe(args []string) error {
 		return fmt.Errorf("shutting down: %w", err)
 	}
 	return nil
+}
+
+func resolveAddr(flagAddr, envPort string) string {
+	if envPort == "" || flagAddr != defaultServeAddr {
+		return flagAddr
+	}
+	return net.JoinHostPort("0.0.0.0", strings.TrimPrefix(envPort, ":"))
 }
 
 func serveURL(addr string) string {

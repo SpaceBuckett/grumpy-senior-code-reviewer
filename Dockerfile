@@ -6,5 +6,6 @@ RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /grumpysenio
 
 FROM gcr.io/distroless/static-debian12:nonroot
 COPY --from=build /grumpysenior /grumpysenior
+ENV PORT=8787
 EXPOSE 8787
-ENTRYPOINT ["/grumpysenior", "serve", "--addr", "0.0.0.0:8787", "--trust-proxy"]
+ENTRYPOINT ["/grumpysenior", "serve", "--trust-proxy"]

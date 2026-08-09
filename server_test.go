@@ -413,6 +413,26 @@ func TestReviewHandlerPRErrors(t *testing.T) {
 	}
 }
 
+func TestResolveAddr(t *testing.T) {
+	cases := []struct {
+		name     string
+		flagAddr string
+		envPort  string
+		want     string
+	}{
+		{"no env keeps local default", defaultServeAddr, "", defaultServeAddr},
+		{"env port binds all interfaces", defaultServeAddr, "8080", "0.0.0.0:8080"},
+		{"env port with colon prefix", defaultServeAddr, ":7860", "0.0.0.0:7860"},
+		{"explicit addr wins over env", "127.0.0.1:9999", "8080", "127.0.0.1:9999"},
+		{"explicit addr without env", "0.0.0.0:1234", "", "0.0.0.0:1234"},
+	}
+	for _, c := range cases {
+		if got := resolveAddr(c.flagAddr, c.envPort); got != c.want {
+			t.Errorf("%s: resolveAddr(%q, %q) = %q, want %q", c.name, c.flagAddr, c.envPort, got, c.want)
+		}
+	}
+}
+
 func TestClientIPProxyHandling(t *testing.T) {
 	cases := []struct {
 		name       string
