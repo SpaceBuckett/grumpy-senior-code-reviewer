@@ -154,7 +154,3 @@ It is skipped automatically when `ANTHROPIC_API_KEY` is not set, and a plain uni
 - **Rewrites are opt-in and bounded.** The second pass costs extra API calls, so it is behind `--rewrite`, capped at 5 findings, and limited to 3 concurrent requests with first-error cancellation.
 
 ---
-
-## Submission summary (100 words)
-
-GrumpySenior is a dependency-free Golang tool that pre-reviews code before human review, as a CLI and a local web UI sharing one engine. It classifies every finding against embedded rubric catalogs (Refactoring.Guru's smell families, named refactoring techniques, and Go-specific guidance) selected by language detection. A rubric-driven prompt forbids linter-level nitpicks and requires a severity, a concrete fix, and a catalog reference per finding. An optional second pass generates bounded, concurrent rewrite snippets. Strict-JSON verdicts render as terminal output, markdown, or raw JSON; severity thresholds map to exit codes for CI. A golden-file eval harness verifies detection quality.
